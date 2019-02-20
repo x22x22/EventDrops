@@ -23,6 +23,7 @@ export default d3 => ({
     },
     drops: row => row.data,
     drop: {
+        filter: true,
         color: null,
         radius: 5,
         date: d => new Date(d),
@@ -34,14 +35,19 @@ export default d3 => ({
         padding: 20,
         text: d => `${d.name} (${d.data.length})`,
         width: 200,
+        onClick: () => {},
     },
     indicator: {
         previousText: '◀',
         nextText: '▶',
     },
+    head: {
+        color: '#fff',
+    },
     line: {
         color: (_, index) => d3.schemeCategory10[index],
         height: 40,
+        style: 'cursor:pointer',
     },
     margin: {
         top: 20,

@@ -17,6 +17,10 @@ export default ({
     global = window,
     ...customConfiguration
 }) => {
+    const expConfig = defaultsDeep(
+        customConfiguration || {},
+        defaultConfiguration(d3)
+    );
     const initChart = selection => {
         selection.selectAll('svg').remove();
 
@@ -70,17 +74,19 @@ export default ({
             svg.call(addMetaballsDefs(config));
         }
 
-        svg.merge(root).attr(
-            'height',
-            d => (d.length + 1) * lineHeight + margin.top + margin.bottom
-        );
+        svg
+            .merge(root)
+            .attr(
+                'height',
+                d => (d.length + 1) * lineHeight + margin.top + margin.bottom
+            );
 
-        svg.append('g')
+        svg
+            .append('g')
             .classed('viewport', true)
             .attr('transform', `translate(${margin.left},${margin.top})`)
             .call(draw(config, xScale));
     };
-
     const chart = selection => {
         chart._initialize = () => initChart(selection);
         chart._initialize();
@@ -96,9 +102,7 @@ export default ({
     };
 
     const draw = (config, scale) => selection => {
-        const {
-            drop: { date: dropDate },
-        } = config;
+        const { drop: { date: dropDate, filter: dropFilter } } = config;
 
         const dateBounds = scale.domain().map(d => new Date(d));
         const filteredData = selection.data().map(dataSet => {
@@ -107,7 +111,6 @@ export default ({
                     'Selection data is not an array. Are you sure you provided an array of arrays to `data` function?'
                 );
             }
-
             return dataSet.map(row => {
                 if (!row.fullData) {
                     row.fullData = config.drops(row);
@@ -117,18 +120,21 @@ export default ({
                         );
                     }
                 }
-
-                row.data = row.fullData.filter(d =>
-                    withinRange(dropDate(d), dateBounds)
-                );
+                if (dropFilter) {
+                    row.data = row.fullData.filter(d =>
+                        withinRange(dropDate(d), dateBounds)
+                    );
+                } else {
+                    row.data = row.fullData;
+                }
 
                 return row;
             });
         });
-
         chart._scale = scale;
         chart._filteredData = filteredData[0];
 
+        window.selection = selection;
         selection
             .data(filteredData)
             .call(dropLine(config, scale))
@@ -137,6 +143,7 @@ export default ({
     };
 
     chart.draw = draw;
+    chart.config = expConfig;
 
     return chart;
 };

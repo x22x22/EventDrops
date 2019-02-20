@@ -4,9 +4,16 @@ import indicator from './indicator';
 export default (config, xScale) => selection => {
     const {
         metaballs,
-        label: { text: labelText, padding: labelPadding, width: labelWidth },
-        line: { color: lineColor, height: lineHeight },
+        label: {
+            text: labelText,
+            padding: labelPadding,
+            width: labelWidth,
+            onClick: labelOnClick,
+        },
+        head: { color: headColor },
+        line: { color: lineColor, height: lineHeight, style: lineStyle },
         indicator: indicatorEnabled,
+        margin: { left: marginLeft, top: marginTop },
     } = config;
 
     const lines = selection.selectAll('.drop-line').data(d => d);
@@ -45,11 +52,21 @@ export default (config, xScale) => selection => {
     }
 
     g
+        .append('rect')
+        .attr('x', -marginLeft)
+        .attr('y', -(marginTop - 4))
+        .attr('width', labelWidth + marginLeft)
+        .attr('height', '100%')
+        .attr('fill', headColor);
+
+    g
         .append('text')
         .classed('line-label', true)
+        .on('click', labelOnClick)
         .attr('x', labelWidth - labelPadding)
         .attr('y', lineHeight / 2)
         .attr('dy', '0.25em')
+        .attr('style', lineStyle)
         .attr('text-anchor', 'end')
         .text(labelText);
 
